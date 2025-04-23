@@ -1,0 +1,97 @@
+{
+    "files.autoSave": "afterDelay",
+    "editor.fontSize": 14,
+    // "editor.fontFamily": "UDEV Gothic 35NFLG",
+    // "editor.fontFamily": "Firge35Nerd Console",
+    "editor.fontFamily": "HackGen35 Console NF",
+    "workbench.colorTheme": "Everforest Dark",
+    "vim.statusBarColorControl": true,
+    "vim.insertModeKeyBindings": [
+        {
+            "before": [
+                "j",
+                "j"
+            ],
+            "after": [
+                "<Esc>"
+            ]
+        }
+    ],
+    // Vim easymotion is required for Jump menu - <SPC> j
+    "vim.easymotion": true,
+    // Use system clipboard for vim
+    "vim.useSystemClipboard": true,
+    // Trigger the main which key menu with in the active editor with vim
+    // This cannot be put into keybindings.json because it will
+    // create conflict with Vim.
+    // https://github.com/stevenguh/spacecode/issues/3
+    "vim.normalModeKeyBindingsNonRecursive": [
+        {
+            "before": [
+                "<space>"
+            ],
+            "commands": [
+                "vspacecode.space"
+            ]
+        },
+        {
+            "before": [
+                ","
+            ],
+            "commands": [
+                "vspacecode.space",
+                {
+                    "command": "whichkey.triggerKey",
+                    "args": "m"
+                }
+            ]
+        }
+    ],
+    "vim.visualModeKeyBindingsNonRecursive": [
+        {
+            "before": [
+                "<space>"
+            ],
+            "commands": [
+                "vspacecode.space"
+            ]
+        },
+        {
+            "before": [
+                ","
+            ],
+            "commands": [
+                "vspacecode.space",
+                {
+                    "command": "whichkey.triggerKey",
+                    "args": "m"
+                }
+            ]
+        },
+        {
+            "before": [
+                ">"
+            ],
+            "commands": [
+                "editor.action.indentLines"
+            ]
+        },
+        {
+            "before": [
+                "<"
+            ],
+            "commands": [
+                "editor.action.outdentLines"
+            ]
+        }
+    ],
+    "workbench.colorCustomizations": {
+        "statusBar.background": "#005f5f",
+        "statusBar.noFolderBackground": "#005f5f",
+        "statusBar.debuggingBackground": "#005f5f",
+        "statusBar.foreground": "#ffffff",
+        "statusBar.debuggingForeground": "#ffffff"
+    },
+    "terminal.integrated.fontFamily": "Firge35Nerd Console",
+    "terminal.integrated.fontSize": 14
+}

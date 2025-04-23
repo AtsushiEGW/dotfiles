@@ -38,3 +38,16 @@ ln -sf "$DOTFILES/wezterm/wezterm.lua" "$HOME/.wezterm.lua"
 echo "✅ Linked wezterm.lua"
 
 echo "🎉 All dotfiles linked successfully!"
+
+#----------- VS Code ------------
+VSCODE_USER="$HOME/Library/Application Support/Code/User"
+mkdir -p "$VSCODE_USER"
+
+ln -sf "$HOME/.dofiles/vscode/settings.json" "$VSCODE_USER/settings.json"
+ln -sf "$HOME/.dofiles/vscode/keybindings.json" "$VSCODE_USER/keybindings.json"
+
+if [ -d "$HOME/.dotfiles/vscode/snippets"]; then
+    ln -sfn "$HOME/.dotfiles/vscode/snippets" "$VSCODE_USER/snippets"
+fi
+
+echo "✅ Linked VSCode settings"
