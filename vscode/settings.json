@@ -1,10 +1,10 @@
 {
     "files.autoSave": "afterDelay",
     "editor.fontSize": 14,
-    // "editor.fontFamily": "UDEV Gothic 35NFLG",
+    "editor.fontFamily": "UDEV Gothic 35NFLG",
     // "editor.fontFamily": "Firge35Nerd Console",
-    "editor.fontFamily": "HackGen35 Console NF",
-    "workbench.colorTheme": "Everforest Dark",
+    // "editor.fontFamily": "HackGen35 Console NF",
+    "workbench.colorTheme": "Gruvbox Dark Medium",
     "vim.statusBarColorControl": true,
     "vim.insertModeKeyBindings": [
         {
@@ -25,6 +25,7 @@
     // This cannot be put into keybindings.json because it will
     // create conflict with Vim.
     // https://github.com/stevenguh/spacecode/issues/3
+
     "vim.normalModeKeyBindingsNonRecursive": [
         {
             "before": [
@@ -92,6 +93,7 @@
         "statusBar.foreground": "#ffffff",
         "statusBar.debuggingForeground": "#ffffff"
     },
-    "terminal.integrated.fontFamily": "Firge35Nerd Console",
-    "terminal.integrated.fontSize": 14
+    "terminal.integrated.fontSize": 14,
+    "terminal.integrated.fontFamily": "FiraCode Nerd font propo",
+    "workbench.activityBar.location": "hidden"
 }

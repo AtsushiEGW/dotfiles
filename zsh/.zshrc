@@ -15,7 +15,7 @@ source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 alias vim="nvim"
 alias vi="nvim"
 alias upd="brew update && brew upgrade"
-alias uvupd="uv self update && uv lock --upgrade && uv sync && uv cache prune"
+alias uvupd="uv lock --upgrade && uv sync && uv cache prune"
 
 . "$HOME/.local/bin/env"
 

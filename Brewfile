@@ -15,7 +15,13 @@ brew "zsh-autosuggestions"
 # Fish shell like syntax highlighting for zsh
 brew "zsh-syntax-highlighting"
 cask "font-hackgen-nerd"
+# uv (python env)
+brew "uv"
+
+
+# gui applications
 cask "visual-studio-code"
+
 # GPU-accelerated cross-platform terminal emulator and multiplexer
 cask "wezterm"
 vscode "aaron-bond.better-comments"
