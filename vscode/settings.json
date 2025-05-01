@@ -1,10 +1,9 @@
 {
     "files.autoSave": "afterDelay",
-    "editor.fontSize": 14,
     "editor.fontFamily": "UDEV Gothic 35NFLG",
     // "editor.fontFamily": "Firge35Nerd Console",
     // "editor.fontFamily": "HackGen35 Console NF",
-    "workbench.colorTheme": "Gruvbox Dark Medium",
+    "workbench.colorTheme": "GitHub Dark Dimmed",
     "vim.statusBarColorControl": true,
     "vim.insertModeKeyBindings": [
         {
@@ -87,13 +86,14 @@
         }
     ],
     "workbench.colorCustomizations": {
-        "statusBar.background": "#005f5f",
-        "statusBar.noFolderBackground": "#005f5f",
-        "statusBar.debuggingBackground": "#005f5f",
+        "statusBar.background": "#5f00af",
+        "statusBar.noFolderBackground": "#5f00af",
+        "statusBar.debuggingBackground": "#5f00af",
         "statusBar.foreground": "#ffffff",
         "statusBar.debuggingForeground": "#ffffff"
     },
     "terminal.integrated.fontSize": 14,
     "terminal.integrated.fontFamily": "FiraCode Nerd font propo",
-    "workbench.activityBar.location": "hidden"
+    "workbench.activityBar.location": "hidden",
+    "editor.fontSize": 14
 }
