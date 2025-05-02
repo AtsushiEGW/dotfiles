@@ -3,7 +3,7 @@
     "editor.fontFamily": "UDEV Gothic 35NFLG",
     // "editor.fontFamily": "Firge35Nerd Console",
     // "editor.fontFamily": "HackGen35 Console NF",
-    "workbench.colorTheme": "GitHub Dark Dimmed",
+    "workbench.colorTheme": "Panda Syntax",
     "vim.statusBarColorControl": true,
     "vim.insertModeKeyBindings": [
         {
@@ -86,9 +86,9 @@
         }
     ],
     "workbench.colorCustomizations": {
-        "statusBar.background": "#5f00af",
-        "statusBar.noFolderBackground": "#5f00af",
-        "statusBar.debuggingBackground": "#5f00af",
+        "statusBar.background": "#005f5f",
+        "statusBar.noFolderBackground": "#005f5f",
+        "statusBar.debuggingBackground": "#005f5f",
         "statusBar.foreground": "#ffffff",
         "statusBar.debuggingForeground": "#ffffff"
     },
