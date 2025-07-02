@@ -150,5 +150,9 @@
 		"key": "ctrl+l",
 		"command": "file-browser.stepIn",
 		"when": "inFileBrowser"
+	},
+	{
+		"key": "ctrl+enter",
+		"command": "workbench.action.terminal.runSelectedText"
 	}
 ]

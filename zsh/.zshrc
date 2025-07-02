@@ -16,8 +16,11 @@ alias vim="nvim"
 alias vi="nvim"
 alias upd="brew update && brew upgrade"
 alias uvupd="uv lock --upgrade && uv sync && uv cache prune"
+#　クリップボードのエイリアス
+alias clip="pbcopy"
 
-. "$HOME/.local/bin/env"
+# これ何かわからないけど一応そのままにしておく
+#. "$HOME/.local/bin/env"
 
 # path each workingspace
 export PATH="$PATH:$HOME/workspace/my_awesomebook/.venv/bin"
@@ -29,3 +32,9 @@ export NVM_DIR="$HOME/.nvm"
 export NVM_SYMLINK_CURRENT=true
 [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
 [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+
+# Set up fzf key bindings and fuzzy completion
+source <(fzf --zsh)
+
+# node.js
+eval "$(fnm env)"
