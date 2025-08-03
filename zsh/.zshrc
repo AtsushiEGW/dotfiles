@@ -1,40 +1,78 @@
-# history
+# ~/.zshrc
+
+# 共通設定（ヒストリ、エイリアスなど）
 HISTFILE=~/.zsh_history
-HISTSIZ=10000
+HISTSIZE=10000
 SAVEHIST=10000
 setopt hist_ignore_dups
 setopt share_history
 
-# Acrivate zsh-syntax-highlighting
-source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+alias ll='ls -la'
+alias gs='git status'
+alias ta='tmux attach -t'
+alias tn='tmux new -s'
 
-# Activate zsh-autosuggestions
-source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+# --- OS判定 ---
+OS_TYPE="$(uname -s)"
 
-# Alias
-alias vim="nvim"
-alias vi="nvim"
-alias upd="brew update && brew upgrade"
-alias uvupd="uv lock --upgrade && uv sync && uv cache prune"
-#　クリップボードのエイリアス
-alias clip="pbcopy"
+if [ "$OS_TYPE" = "Darwin" ]; then
+  # ======== macOS の場合 ========
+  
+  # Homebrew 環境をロード
+  if command -v brew &>/dev/null; then
+    eval "$(brew shellenv)"
+  fi
 
-# これ何かわからないけど一応そのままにしておく
-#. "$HOME/.local/bin/env"
+  # starship（brewでインストール推奨）
+  if command -v starship &>/dev/null; then
+    eval "$(starship init zsh)"
+  fi
 
-# path each workingspace
-export PATH="$PATH:$HOME/workspace/my_awesomebook/.venv/bin"
-export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+  # fzf (Homebrew版)
+  if [ -f "$(brew --prefix)/opt/fzf/shell/key-bindings.zsh" ]; then
+    source "$(brew --prefix)/opt/fzf/shell/key-bindings.zsh"
+  fi
+  if [ -f "$(brew --prefix)/opt/fzf/shell/completion.zsh" ]; then
+    source "$(brew --prefix)/opt/fzf/shell/completion.zsh"
+  fi
 
-# starship
-eval "$(starship init zsh)"
-export NVM_DIR="$HOME/.nvm"
-export NVM_SYMLINK_CURRENT=true
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
-[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+  # zsh-autosuggestions（Homebrew）
+  if [ -f "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+    source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+  fi
 
-# Set up fzf key bindings and fuzzy completion
-source <(fzf --zsh)
+  # zsh-syntax-highlighting（Homebrew）
+  if [ -f "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+    source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+  fi
 
-# node.js
-eval "$(fnm env)"
+  # macOS固有のalias例
+  alias clip='pbcopy'
+
+
+else
+  # ======== Linux の場合 ========
+
+  # starship（手動インストールやcargo経由）
+  export PATH="$HOME/.cargo/bin:$PATH"
+  if command -v starship &>/dev/null; then
+    eval "$(starship init zsh)"
+  fi
+
+  # fzf (aptや手動インストール)
+  [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+  # zsh-autosuggestions（Git clone版）
+  if [ -f "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+    source "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh"
+  fi
+
+  # zsh-syntax-highlighting（Git clone版）
+  if [ -f "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+    source "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+  fi
+
+  # Linux固有のalias例
+  alias clip='xclip -selection clipboard'
+
+fi

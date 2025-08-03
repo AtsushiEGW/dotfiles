@@ -151,8 +151,21 @@
 		"command": "file-browser.stepIn",
 		"when": "inFileBrowser"
 	},
+	// {
+	// 	"key": "ctrl+enter",
+	// 	"command": "workbench.action.terminal.runSelectedText",
+	// 	"when": "editorTextFocus && !notebookEditorFocused && !notebookCellEditorFocused"
+	// },
 	{
-		"key": "ctrl+enter",
-		"command": "workbench.action.terminal.runSelectedText"
-	}
+		"key": "ctrl+d ctrl+g",
+		"command": "workbench.action.tasks.runTask",
+		"args": "Run Current dbt Model",
+		"when": "editorLangId == sql"
+	},
+	{
+		"key": "ctrl+d ctrl+s",
+		"command": "workbench.action.tasks.runTask",
+		"args": "Show Current dbt Model Tale",
+		"when": "editorLangId == sql"
+	},
 ]

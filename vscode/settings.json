@@ -1,10 +1,11 @@
 {
     "files.autoSave": "afterDelay",
     "editor.fontFamily": "UDEV Gothic 35NFLG",
+    // "editor.fontFamily": "PlemolJP35 Console NF",
     // "editor.fontFamily": "Firge35Nerd Console",
     // "editor.fontFamily": "HackGen35 Console NF",
-    "workbench.colorTheme": "One Dark Pro Mix",
-
+    // "editor.fontFamily": "FiraCode Nerd Font",
+    "workbench.colorTheme": "Dracula Theme Soft",
     "vim.statusBarColorControl": true,
     "vim.insertModeKeyBindings": [
         {
@@ -25,7 +26,6 @@
     // This cannot be put into keybindings.json because it will
     // create conflict with Vim.
     // https://github.com/stevenguh/spacecode/issues/3
-
     "vim.normalModeKeyBindingsNonRecursive": [
         {
             "before": [
@@ -87,6 +87,18 @@
         }
     ],
     "workbench.colorCustomizations": {
+        "editorIndentGuide.background1": "#b22222",
+        "editorIndentGuide.background2": "#ff4500",
+        "editorIndentGuide.background3": "#ffd700",
+        "editorIndentGuide.background4": "#228b22",
+        "editorIndentGuide.background5": "#000080",
+        "editorIndentGuide.background6": "#8b008b",
+        "editorIndentGuide.activeBackground1": "#fff",
+        "editorIndentGuide.activeBackground2": "#fff",
+        "editorIndentGuide.activeBackground3": "#fff",
+        "editorIndentGuide.activeBackground4": "#fff",
+        "editorIndentGuide.activeBackground5": "#fff",
+        "editorIndentGuide.activeBackground6": "#fff",
         "statusBar.background": "#005f5f",
         "statusBar.noFolderBackground": "#005f5f",
         "statusBar.debuggingBackground": "#005f5f",
@@ -94,11 +106,21 @@
         "statusBar.debuggingForeground": "#ffffff"
     },
     "terminal.integrated.fontSize": 14,
-    "terminal.integrated.fontFamily": "FiraCode Nerd font propo",
+    "terminal.integrated.fontFamily": "FiraCode Nerd Font",
+    // "terminal.integrated.fontFamily": "UDEV Gothic 35NFLG",
+    // "terminal.integrated.fontFamily": "HackGen35 Console NF",
     "editor.fontSize": 14,
     "python.analysis.typeCheckingMode": "basic",
     "makefile.configureOnOpen": true,
-    "workbench.iconTheme": "vscode-icons",
+    "workbench.iconTheme": "ayu",
     "editor.guides.bracketPairs": true,
-    "redhat.telemetry.enabled": true
+    "redhat.telemetry.enabled": true,
+    "cSpell.userWords": [
+        "endmacro",
+        "endsnapshot",
+        "varchar"
+    ],
+    "markdown-preview-enhanced.previewTheme": "one-dark.css",
+    "python.defaultInterpreterPath": "/opt/homebrew/bin/python3",
+    "remote.autoForwardPortsSource": "hybrid",
 }
