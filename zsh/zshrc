@@ -1,0 +1,89 @@
+# ====== PATH / env ======
+typeset -U path PATH
+path=(
+  $HOME/.local/bin
+  $HOME/bin
+  $path
+)
+export PATH
+export LANG=${LANG:-en_US.UTF-8}
+export LC_ALL=${LC_ALL:-en_US.UTF-8}
+export EDITOR=${EDITOR:-vim}
+export VISUAL=${VISUAL:-$EDITOR}
+export PAGER=${PAGER:-less}
+export LESS="-R -F -X -K"
+export LESSHISTFILE=-
+
+# helpers
+is_macos() { [[ "$OSTYPE" == darwin* ]]; }
+is_gnu_ls() { ls --version >/dev/null 2>&1 }
+
+# ====== 履歴 ======
+HISTFILE=$HOME/.zsh_history
+HISTSIZE=200000
+SAVEHIST=200000
+setopt BANG_HIST EXTENDED_HISTORY INC_APPEND_HISTORY SHARE_HISTORY \
+       HIST_EXPIRE_DUPS_FIRST HIST_IGNORE_DUPS HIST_IGNORE_ALL_DUPS \
+       HIST_REDUCE_BLANKS HIST_VERIFY
+
+# ====== 補完（zinit 無い場合の最小構成）======
+if [[ ! -d "$HOME/.zinit/bin" ]]; then
+  autoload -Uz compinit
+  ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+  mkdir -p "$ZSH_CACHE_DIR"
+  export ZSH_DISABLE_COMPFIX=true
+  compinit -d "$ZSH_CACHE_DIR/zcompdump"
+fi
+
+# ====== 基本オプション/エイリアス ======
+[[ -f "$HOME/.dotfiles/zsh/options.zsh" ]] && source "$HOME/.dotfiles/zsh/options.zsh"
+[[ -f "$HOME/.dotfiles/zsh/aliases.zsh" ]] && source "$HOME/.dotfiles/zsh/aliases.zsh"
+
+# ====== zinit（ある時だけ）→ プラグイン ======
+if [[ -r "$HOME/.zinit/bin/zinit.zsh" ]]; then
+  source "$HOME/.zinit/bin/zinit.zsh"
+  [[ -f "$HOME/.dotfiles/zsh/plugins.zsh" ]] && source "$HOME/.dotfiles/zsh/plugins.zsh"
+fi
+
+# ====== fzf（未導入でも無害）======
+if (( $+commands[rg] )); then
+  export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git"'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+elif (( $+commands[fd] )); then
+  export FZF_DEFAULT_COMMAND='fd --hidden --follow --exclude .git'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+else
+  export FZF_DEFAULT_COMMAND='find . -type f -not -path "*/.git/*"'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+fi
+export FZF_DEFAULT_OPTS='--height 40% --reverse --border --info=inline --cycle'
+
+# key-bindings / completion（存在するパスだけ読む）
+if [[ -f "/usr/share/doc/fzf/examples/key-bindings.zsh" ]]; then
+  source /usr/share/doc/fzf/examples/key-bindings.zsh
+elif [[ -f "/usr/share/fzf/key-bindings.zsh" ]]; then
+  source /usr/share/fzf/key-bindings.zsh
+elif command -v brew >/dev/null 2>&1 && [[ -f "$(brew --prefix)/opt/fzf/shell/key-bindings.zsh" ]]; then
+  source "$(brew --prefix)/opt/fzf/shell/key-bindings.zsh"
+fi
+[[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
+
+# ====== 任意ツール（入っていれば使う）======
+if (( $+commands[zoxide] )); then eval "$(zoxide init zsh)"; fi
+if (( $+commands[direnv] )); then eval "$(direnv hook zsh)"; fi
+if (( $+commands[mise] )); then
+  eval "$(mise activate zsh)"
+elif (( $+commands[asdf] )); then
+  . /opt/homebrew/opt/asdf/libexec/asdf.sh 2>/dev/null || \
+  . /usr/local/opt/asdf/libexec/asdf.sh 2>/dev/null || \
+  . "$HOME/.asdf/asdf.sh" 2>/dev/null || true
+elif (( $+commands[pyenv] )); then
+  eval "$(pyenv init -)"
+fi
+if (( $+commands[nodenv] )); then eval "$(nodenv init -)"; fi
+
+# ====== starship ======
+if (( $+commands[starship] )); then
+  eval "$(starship init zsh)"
+fi
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

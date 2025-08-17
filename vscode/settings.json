@@ -1,11 +1,11 @@
 {
     "files.autoSave": "afterDelay",
-    "editor.fontFamily": "UDEV Gothic 35NFLG",
+    // "editor.fontFamily": "UDEV Gothic 35NFLG",
     // "editor.fontFamily": "PlemolJP35 Console NF",
     // "editor.fontFamily": "Firge35Nerd Console",
     // "editor.fontFamily": "HackGen35 Console NF",
-    // "editor.fontFamily": "FiraCode Nerd Font",
-    "workbench.colorTheme": "Dracula Theme Soft",
+    "editor.fontFamily": "FiraCode Nerd Font",
+    "workbench.colorTheme": "Brackets Light Pro Bold",
     "vim.statusBarColorControl": true,
     "vim.insertModeKeyBindings": [
         {
@@ -116,11 +116,18 @@
     "editor.guides.bracketPairs": true,
     "redhat.telemetry.enabled": true,
     "cSpell.userWords": [
+        "devcontainers",
         "endmacro",
         "endsnapshot",
-        "varchar"
+        "healthcheck",
+        "pgdata",
+        "varchar",
+        "worksapce"
     ],
     "markdown-preview-enhanced.previewTheme": "one-dark.css",
     "python.defaultInterpreterPath": "/opt/homebrew/bin/python3",
     "remote.autoForwardPortsSource": "hybrid",
+    "database-client.autoSync": true,
+
+    "dev.containers.stopOnClose": true
 }
