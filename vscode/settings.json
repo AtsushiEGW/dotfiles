@@ -5,7 +5,7 @@
     // "editor.fontFamily": "Firge35Nerd Console",
     // "editor.fontFamily": "HackGen35 Console NF",
     "editor.fontFamily": "FiraCode Nerd Font",
-    "workbench.colorTheme": "Brackets Light Pro Bold",
+    "workbench.colorTheme": "GitHub Dark Dimmed",
     "vim.statusBarColorControl": true,
     "vim.insertModeKeyBindings": [
         {
