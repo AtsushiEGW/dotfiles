@@ -26,15 +26,6 @@ setopt BANG_HIST EXTENDED_HISTORY INC_APPEND_HISTORY SHARE_HISTORY \
        HIST_EXPIRE_DUPS_FIRST HIST_IGNORE_DUPS HIST_IGNORE_ALL_DUPS \
        HIST_REDUCE_BLANKS HIST_VERIFY
 
-# ====== 補完（zinit 無い場合の最小構成）======
-if [[ ! -d "$HOME/.zinit/bin" ]]; then
-  autoload -Uz compinit
-  ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
-  mkdir -p "$ZSH_CACHE_DIR"
-  export ZSH_DISABLE_COMPFIX=true
-  compinit -d "$ZSH_CACHE_DIR/zcompdump"
-fi
-
 # ====== 基本オプション/エイリアス ======
 [[ -f "$HOME/.dotfiles/zsh/options.zsh" ]] && source "$HOME/.dotfiles/zsh/options.zsh"
 [[ -f "$HOME/.dotfiles/zsh/aliases.zsh" ]] && source "$HOME/.dotfiles/zsh/aliases.zsh"
@@ -42,7 +33,16 @@ fi
 # ====== zinit（ある時だけ）→ プラグイン ======
 if [[ -r "$HOME/.zinit/bin/zinit.zsh" ]]; then
   source "$HOME/.zinit/bin/zinit.zsh"
+  # プラグインの中で zicompinit; zicdreplay を呼ぶ（= compinit 実行）
   [[ -f "$HOME/.dotfiles/zsh/plugins.zsh" ]] && source "$HOME/.dotfiles/zsh/plugins.zsh"
+else
+  # ====== 補完（zinit 無い場合の最小構成）======
+  autoload -Uz compinit
+  ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+  mkdir -p "$ZSH_CACHE_DIR"
+  # 権限が怪しいと補完が無効化されるので、必要なら compaudit で修正
+  # compaudit | xargs -r chmod -R go-w
+  compinit -d "$ZSH_CACHE_DIR/zcompdump"
 fi
 
 # ====== fzf（未導入でも無害）======
@@ -66,11 +66,16 @@ elif [[ -f "/usr/share/fzf/key-bindings.zsh" ]]; then
 elif command -v brew >/dev/null 2>&1 && [[ -f "$(brew --prefix)/opt/fzf/shell/key-bindings.zsh" ]]; then
   source "$(brew --prefix)/opt/fzf/shell/key-bindings.zsh"
 fi
-[[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
+# ~/.fzf.zsh は一度だけ（重複防止）
+if [[ -f "$HOME/.fzf.zsh" && -z "$__FZF_ZSH_SOURCED" ]]; then
+  source "$HOME/.fzf.zsh"
+  export __FZF_ZSH_SOURCED=1
+fi
 
 # ====== 任意ツール（入っていれば使う）======
-if (( $+commands[zoxide] )); then eval "$(zoxide init zsh)"; fi
-if (( $+commands[direnv] )); then eval "$(direnv hook zsh)"; fi
+(( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
+(( $+commands[direnv] )) && eval "$(direnv hook zsh)"
+
 if (( $+commands[mise] )); then
   eval "$(mise activate zsh)"
 elif (( $+commands[asdf] )); then
@@ -80,10 +85,12 @@ elif (( $+commands[asdf] )); then
 elif (( $+commands[pyenv] )); then
   eval "$(pyenv init -)"
 fi
-if (( $+commands[nodenv] )); then eval "$(nodenv init -)"; fi
+(( $+commands[nodenv] )) && eval "$(nodenv init -)"
 
 # ====== starship ======
-if (( $+commands[starship] )); then
-  eval "$(starship init zsh)"
-fi
+(( $+commands[starship] )) && eval "$(starship init zsh)"
+
+# ====== 最終バインドの保険（Tab=補完）======
+# fzf 等が Tab を奪っても、最後に戻す
+bindkey '^I' expand-or-complete
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
