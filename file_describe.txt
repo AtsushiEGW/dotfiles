@@ -1,0 +1,508 @@
+===Project Directory Structure:
+
+.
+├── bootstrap.sh
+├── Brewfile
+├── install
+│   ├── alpine.sh
+│   ├── common.sh
+│   ├── debian.sh
+│   └── macos.sh
+├── README.md
+├── starship
+│   └── starship.toml
+├── tmux
+├── vscode
+│   ├── keybindings.json
+│   └── settings.json
+└── zsh
+    ├── aliases.zsh
+    ├── options.zsh
+    ├── plugins.zsh
+    └── zshrc
+
+6 directories, 14 files
+
+
+
+=== bootstrap.sh:
+
+#!/usr/bin/env sh
+# ~/.dotfiles/bootstrap.sh  (POSIX)
+set -eu
+
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.dotfiles}"
+INSTALL_DIR="$DOTFILES_DIR/install"
+
+log() { printf '%s\n' "$*"; }
+err() { printf 'ERROR: %s\n' "$*\n" >&2; exit 1; }
+
+[ -d "$DOTFILES_DIR" ] || err "dotfiles dir not found: $DOTFILES_DIR"
+[ -d "$INSTALL_DIR" ]  || err "install dir not found: $INSTALL_DIR"
+
+# --- Detect distro (POSIX) ---
+OS_UNAME="$(uname -s 2>/dev/null || echo Unknown)"
+DISTRO="debian"
+if [ "$OS_UNAME" = "Darwin" ]; then
+  DISTRO="macos"
+elif [ "$OS_UNAME" = "Linux" ] && [ -r /etc/os-release ]; then
+  . /etc/os-release
+  case "${ID:-}${ID_LIKE:+ $ID_LIKE}" in
+    *alpine*|*Alpine*) DISTRO="alpine" ;;
+    *)                 DISTRO="debian" ;;
+  esac
+fi
+
+# --- Pick installer script ---
+case "$DISTRO" in
+  macos)  INSTALLER="$INSTALL_DIR/macos.sh"  ;;
+  debian) INSTALLER="$INSTALL_DIR/debian.sh" ;;
+  alpine) INSTALLER="$INSTALL_DIR/alpine.sh" ;;
+  *)      err "unknown DISTRO: $DISTRO" ;;
+esac
+
+if [ "$DISTRO" = "macos" ] && [ ! -f "$INSTALLER" ]; then
+  log "macos installer not found. skipping platform install…"
+else
+  [ -f "$INSTALLER" ] || err "installer not found: $INSTALLER"
+  chmod +x "$INSTALLER" 2>/dev/null || true
+  log "→ Running installer: $INSTALLER"
+  # macOS は内部で bash を使うが、ここは sh で OK
+  if [ "$DISTRO" = "macos" ]; then
+    /bin/bash "$INSTALLER"
+  else
+    sh "$INSTALLER"
+  fi
+fi
+
+# --- Common (links / zinit / starship.toml etc.) ---
+if [ -f "$INSTALL_DIR/common.sh" ]; then
+  chmod +x "$INSTALL_DIR/common.sh" 2>/dev/null || true
+  sh "$INSTALL_DIR/common.sh"
+fi
+
+log "[dotfiles] setup done."
+
+
+=== install/alpine.sh:
+
+#!/usr/bin/env sh
+# ~/.dotfiles/install/alpine.sh (POSIX)
+set -eu
+
+# apk は通常 root 実行。sudo があれば使うが、無ければそのまま
+SUDO=""; command -v sudo >/dev/null 2>&1 && SUDO="sudo"
+
+$SUDO apk update
+$SUDO apk add --no-cache zsh curl git ca-certificates fzf tmux xclip
+
+# starship（musl 用バイナリ直置き）— 失敗しても続行
+if ! command -v starship >/dev/null 2>&1; then
+  ARCH="$(uname -m)"
+  case "$ARCH" in
+    x86_64)  URL="https://github.com/starship/starship/releases/latest/download/starship-x86_64-unknown-linux-musl.tar.gz" ;;
+    aarch64) URL="https://github.com/starship/starship/releases/latest/download/starship-aarch64-unknown-linux-musl.tar.gz" ;;
+    *) echo "unsupported arch: $ARCH"; exit 0 ;;
+  esac
+  TMP="$(mktemp -d)"
+  if curl -fsSL "$URL" | tar xz -C "$TMP"; then
+    TARGET_DIR="/usr/local/bin"
+    if [ ! -w "$TARGET_DIR" ]; then
+      TARGET_DIR="$HOME/.local/bin"
+      mkdir -p "$TARGET_DIR"
+    else
+      $SUDO mkdir -p "$TARGET_DIR"
+    fi
+    if [ "$TARGET_DIR" = "/usr/local/bin" ]; then
+      $SUDO install -m 0755 "$TMP/starship" "$TARGET_DIR/starship"
+    else
+      install -m 0755 "$TMP/starship" "$TARGET_DIR/starship"
+    fi
+  fi
+  rm -rf "$TMP"
+fi
+
+
+=== install/common.sh:
+
+#!/usr/bin/env sh
+# ~/.dotfiles/install/common.sh
+set -eu
+
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.dotfiles}"
+
+log() { printf '%s\n' "$*"; }
+
+[ -d "$DOTFILES_DIR" ] || { echo "ERROR: dotfiles dir not found: $DOTFILES_DIR" >&2; exit 1; }
+
+# --- zinit（Zshプラグインマネージャ。oh-my-zsh不要） ---
+if [ ! -d "$HOME/.zinit/bin" ]; then
+  mkdir -p "$HOME/.zinit"
+  if command -v git >/dev/null 2>&1; then
+    git clone --depth=1 https://github.com/zdharma-continuum/zinit.git "$HOME/.zinit/bin"
+  else
+    echo "WARN: git not found; skip zinit clone" >&2
+  fi
+fi
+
+# --- ユーティリティ: シンボリックリンク ---
+link() {
+  # link SRC DST
+  mkdir -p "$(dirname "$2")"
+  ln -snf "$1" "$2"
+}
+
+# --- Zsh 設定をリンク ---
+if [ -f "$DOTFILES_DIR/zsh/zshrc" ]; then
+  link "$DOTFILES_DIR/zsh/zshrc" "$HOME/.zshrc"
+else
+  echo "WARN: $DOTFILES_DIR/zsh/zshrc not found; skip linking ~/.zshrc" >&2
+fi
+
+# --- Starship 設定（存在する場合のみ） ---
+if [ -f "$DOTFILES_DIR/starship/starship.toml" ]; then
+  mkdir -p "$HOME/.config"
+  link "$DOTFILES_DIR/starship/starship.toml" "$HOME/.config/starship.toml"
+else
+  log "INFO: starship config not found; skipped"
+fi
+
+# --- tmux 設定（.tmux.conf を優先） ---
+TMUX_SRC=""
+if [ -f "$DOTFILES_DIR/tmux/.tmux.conf" ]; then
+  TMUX_SRC="$DOTFILES_DIR/tmux/.tmux.conf"
+elif [ -f "$DOTFILES_DIR/tmux/tmux.conf" ]; then
+  TMUX_SRC="$DOTFILES_DIR/tmux/tmux.conf"
+fi
+[ -n "$TMUX_SRC" ] && link "$TMUX_SRC" "$HOME/.tmux.conf" || log "INFO: tmux config not found; skipped"
+
+
+# --- 可能ならログインシェルを zsh に（コンテナではスキップ） ---
+is_container() {
+  [ -f /run/.containerenv ] || [ -f /.dockerenv ]
+}
+
+if command -v zsh >/dev/null 2>&1 && command -v chsh >/dev/null 2>&1; then
+  if ! is_container; then
+    case "${SHELL:-}" in
+      *zsh) : ;;  # すでに zsh
+      *) chsh -s "$(command -v zsh)" || true ;;
+    esac
+  else
+    echo "[common] container detected; skip chsh (devcontainer feature will set default shell)."
+  fi
+fi
+
+echo "[common] linking finished. Open a new shell or run: exec zsh"
+
+
+=== install/debian.sh:
+
+#!/usr/bin/env sh
+# ~/.dotfiles/install/debian.sh (POSIX)
+set -eu
+
+# sudo を必要時のみ
+SUDO=""
+if command -v sudo >/dev/null 2>&1 && [ "$(id -u)" != "0" ]; then
+  SUDO="sudo"
+fi
+
+# 非対話で（devcontainer で詰まらないように）
+export DEBIAN_FRONTEND=noninteractive
+
+$SUDO apt-get update -y
+$SUDO apt-get install -y --no-install-recommends \
+  zsh curl git ca-certificates fzf tmux xclip locales
+
+# ロケール（存在する環境でのみ）
+if [ -f /etc/locale.gen ] && command -v locale-gen >/dev/null 2>&1; then
+  if grep -q '^# *en_US\.UTF-8 UTF-8' /etc/locale.gen; then
+    $SUDO sed -i 's/^# *en_US\.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen || true
+  elif ! grep -q '^en_US\.UTF-8 UTF-8' /etc/locale.gen; then
+    $SUDO sh -c "printf '%s\n' 'en_US.UTF-8 UTF-8' >> /etc/locale.gen"
+  fi
+  $SUDO locale-gen || true
+fi
+
+# starship（失敗しても続行）
+if ! command -v starship >/dev/null 2>&1; then
+  (curl -fsSL https://starship.rs/install.sh | sh -s -- -y) || true
+fi
+
+
+=== install/macos.sh:
+
+#!/usr/bin/env sh
+# ~/.dotfiles/install/macos.sh  (POSIX sh)
+set -eu
+
+# --- Homebrew ---
+if ! command -v brew >/dev/null 2>&1; then
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+brew update
+
+# --- Brewfile ---
+if [ -f "$HOME/.dotfiles/Brewfile" ]; then
+  brew bundle --file="$HOME/.dotfiles/Brewfile"
+fi
+
+# --- fzf キーバインド (brew 版) ---
+FZF_INSTALL="$(brew --prefix 2>/dev/null)/opt/fzf/install"
+if [ -x "$FZF_INSTALL" ]; then
+  yes | "$FZF_INSTALL" --no-bash --no-fish
+fi
+
+
+=== install/macos.sh:
+
+#!/usr/bin/env sh
+# ~/.dotfiles/install/macos.sh  (POSIX sh)
+set -eu
+
+# --- Homebrew ---
+if ! command -v brew >/dev/null 2>&1; then
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+brew update
+
+# --- Brewfile ---
+if [ -f "$HOME/.dotfiles/Brewfile" ]; then
+  brew bundle --file="$HOME/.dotfiles/Brewfile"
+fi
+
+# --- fzf キーバインド (brew 版) ---
+FZF_INSTALL="$(brew --prefix 2>/dev/null)/opt/fzf/install"
+if [ -x "$FZF_INSTALL" ]; then
+  yes | "$FZF_INSTALL" --no-bash --no-fish
+fi
+
+
+=== zsh/aliases.zsh:
+
+# ls（GNU/BSD で分岐）
+if is_macos; then
+  alias ls='ls -G -F'
+  alias ll='ls -alGh'
+  alias la='ls -A'
+else
+  alias ls='ls --color=auto -F'
+  alias ll='ls -alh --color=auto'
+  alias la='ls -A --color=auto'
+fi
+
+# grep/cat
+alias grep='grep --color=auto'
+if (( $+commands[bat] )); then
+  alias cat='bat -pp'
+elif (( $+commands[batcat] )); then
+  alias cat='batcat -pp'
+fi
+
+# 安全系
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
+
+# Git
+alias g='git'
+alias gs='git status'
+alias gst='git status -sb'
+alias gco='git checkout'
+alias ga='git add -A'
+alias gc='git commit'
+alias gca='git commit --amend --no-edit'
+alias gp='git push'
+alias gpl='git pull --rebase'
+alias gsw='git switch'
+alias gcb='git checkout -b'
+
+# tmux
+alias ta='tmux attach -t'
+alias tn='tmux new -s'
+alias tls='tmux ls'
+
+# mac 専用 update（brew がある時だけ）
+if command -v brew >/dev/null 2>&1; then
+  alias update='brew update && brew upgrade && brew cleanup'
+fi
+
+# クリップボード
+if is_macos; then
+  alias clip='pbcopy'
+else
+  alias clip='xclip -selection clipboard'
+fi
+
+# Docker
+alias d='docker'
+alias dc='docker compose'
+
+# Python
+alias py='python'
+alias pipi='python -m pip install -U pip'
+
+# パス移動
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias duh='du -sh * | sort -h'
+
+alias please='sudo'  # タイプミス救済
+
+# fzf があるときの簡易関数（zoxide 無い時のみ）
+if (( $+commands[fzf] )) && ! (( $+commands[zoxide] )); then
+  ff() { find . -type f -not -path '*/.git/*' | fzf }
+  fd() { cd "$(find "${1:-.}" -type d -not -path '*/.git/*' | fzf)"; }
+fi
+
+
+=== zsh/options.zsh:
+
+# 補完/メニュー系（compinit 自体は zshrc で実行済み or zinit が最適化して実行）
+setopt AUTO_MENU AUTO_LIST MENU_COMPLETE COMPLETE_IN_WORD
+setopt NO_BEEP INTERACTIVE_COMMENTS
+setopt AUTO_CD           # ただのパス入力で cd
+setopt CORRECT           # 軽い補正
+setopt NO_FLOW_CONTROL   # Ctrl+S/Q 無効（誤爆防止）
+setopt EXTENDED_GLOB
+
+# 補完の見た目/挙動
+zmodload zsh/complist 2>/dev/null || true
+zstyle ':completion:*' squeeze-slashes true
+zstyle ':completion:*' special-dirs true
+zstyle ':completion:*' completer _complete _ignored _approximate
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+
+
+=== zsh/plugins.zsh:
+
+# 読み込み高速化のデフォルト ice
+zinit ice wait"1" lucid
+
+# --- 1) 補完関数を先に読み込み（compinit 前に fpath を揃える） ---
+zinit light zsh-users/zsh-completions
+
+# compinit 相当：zinit の仕組みで実行（これで補完が有効化される）
+zicompinit
+zicdreplay
+
+# --- 2) 補完後に読み込む系（UI/ハイライト/サジェストなど） ---
+# シンタックスハイライト（高速）
+zinit light zdharma-continuum/fast-syntax-highlighting
+
+# 入力サジェスト
+zinit light zsh-users/zsh-autosuggestions
+
+# 履歴の部分一致検索（↑/↓）
+zinit light zsh-users/zsh-history-substring-search
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+
+# fzf-tab（fzf がある時だけ）: 必ず compinit 後に読み込む
+if command -v fzf >/dev/null 2>&1; then
+  zinit light Aloxaf/fzf-tab
+  # 好みのキーバインド例（グループ切替）
+  zstyle ':fzf-tab:*' switch-group 'ctrl-h' 'ctrl-l'
+fi
+
+
+=== zsh/zshrc:
+
+# ====== PATH / env ======
+typeset -U path PATH
+path=(
+  $HOME/.local/bin
+  $HOME/bin
+  $path
+)
+export PATH
+export LANG=${LANG:-en_US.UTF-8}
+export LC_ALL=${LC_ALL:-en_US.UTF-8}
+export EDITOR=${EDITOR:-vim}
+export VISUAL=${VISUAL:-$EDITOR}
+export PAGER=${PAGER:-less}
+export LESS="-R -F -X -K"
+export LESSHISTFILE=-
+
+# helpers
+is_macos() { [[ "$OSTYPE" == darwin* ]]; }
+is_gnu_ls() { ls --version >/dev/null 2>&1 }
+
+# ====== 履歴 ======
+HISTFILE=$HOME/.zsh_history
+HISTSIZE=200000
+SAVEHIST=200000
+setopt BANG_HIST EXTENDED_HISTORY INC_APPEND_HISTORY SHARE_HISTORY \
+       HIST_EXPIRE_DUPS_FIRST HIST_IGNORE_DUPS HIST_IGNORE_ALL_DUPS \
+       HIST_REDUCE_BLANKS HIST_VERIFY
+
+# ====== 基本オプション/エイリアス ======
+[[ -f "$HOME/.dotfiles/zsh/options.zsh" ]] && source "$HOME/.dotfiles/zsh/options.zsh"
+[[ -f "$HOME/.dotfiles/zsh/aliases.zsh" ]] && source "$HOME/.dotfiles/zsh/aliases.zsh"
+
+# ====== zinit（ある時だけ）→ プラグイン ======
+if [[ -r "$HOME/.zinit/bin/zinit.zsh" ]]; then
+  source "$HOME/.zinit/bin/zinit.zsh"
+  # プラグインの中で zicompinit; zicdreplay を呼ぶ（= compinit 実行）
+  [[ -f "$HOME/.dotfiles/zsh/plugins.zsh" ]] && source "$HOME/.dotfiles/zsh/plugins.zsh"
+else
+  # ====== 補完（zinit 無い場合の最小構成）======
+  autoload -Uz compinit
+  ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+  mkdir -p "$ZSH_CACHE_DIR"
+  # 権限が怪しいと補完が無効化されるので、必要なら compaudit で修正
+  # compaudit | xargs -r chmod -R go-w
+  compinit -d "$ZSH_CACHE_DIR/zcompdump"
+fi
+
+# ====== fzf（未導入でも無害）======
+if (( $+commands[rg] )); then
+  export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git"'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+elif (( $+commands[fd] )); then
+  export FZF_DEFAULT_COMMAND='fd --hidden --follow --exclude .git'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+else
+  export FZF_DEFAULT_COMMAND='find . -type f -not -path "*/.git/*"'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+fi
+export FZF_DEFAULT_OPTS='--height 40% --reverse --border --info=inline --cycle'
+
+# key-bindings / completion（存在するパスだけ読む）
+if [[ -f "/usr/share/doc/fzf/examples/key-bindings.zsh" ]]; then
+  source /usr/share/doc/fzf/examples/key-bindings.zsh
+elif [[ -f "/usr/share/fzf/key-bindings.zsh" ]]; then
+  source /usr/share/fzf/key-bindings.zsh
+elif command -v brew >/dev/null 2>&1 && [[ -f "$(brew --prefix)/opt/fzf/shell/key-bindings.zsh" ]]; then
+  source "$(brew --prefix)/opt/fzf/shell/key-bindings.zsh"
+fi
+# ~/.fzf.zsh は一度だけ（重複防止）
+if [[ -f "$HOME/.fzf.zsh" && -z "$__FZF_ZSH_SOURCED" ]]; then
+  source "$HOME/.fzf.zsh"
+  export __FZF_ZSH_SOURCED=1
+fi
+
+# ====== 任意ツール（入っていれば使う）======
+(( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
+(( $+commands[direnv] )) && eval "$(direnv hook zsh)"
+
+if (( $+commands[mise] )); then
+  eval "$(mise activate zsh)"
+elif (( $+commands[asdf] )); then
+  . /opt/homebrew/opt/asdf/libexec/asdf.sh 2>/dev/null || \
+  . /usr/local/opt/asdf/libexec/asdf.sh 2>/dev/null || \
+  . "$HOME/.asdf/asdf.sh" 2>/dev/null || true
+elif (( $+commands[pyenv] )); then
+  eval "$(pyenv init -)"
+fi
+(( $+commands[nodenv] )) && eval "$(nodenv init -)"
+
+# ====== starship ======
+(( $+commands[starship] )) && eval "$(starship init zsh)"
+
+# ====== 最終バインドの保険（Tab=補完）======
+# fzf 等が Tab を奪っても、最後に戻す
+bindkey '^I' expand-or-complete
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

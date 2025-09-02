@@ -1,0 +1,31 @@
+{
+  "name": "my devcontainer",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "app-dev",
+  "workspaceFolder": "/workspace",
+  "remoteUser": "app",
+
+  // VS Code のポート転送（必要なら）
+  "forwardPorts": [3000, 8080, 5432],
+
+  // ファイル権限ずれ対策（推奨）
+  "containerUser": "app",
+
+  // コンテナ作成直後に一度だけ実行（oh-my-zsh 導入やリンクを dotfiles の bootstrap に任せる）
+  "postCreateCommand": "sh -lc 'sh ~/.dotfiles/bootstrap.sh || true'",
+
+  // VS Code 側の品質向上オプション（お好みで）
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.shellIntegration.enabled": true,
+        "editor.tabSize": 2
+      },
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "ms-vscode-remote.remote-containers"
+      ]
+    }
+  }
+}

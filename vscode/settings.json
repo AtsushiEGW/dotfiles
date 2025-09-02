@@ -5,7 +5,7 @@
     // "editor.fontFamily": "Firge35Nerd Console",
     // "editor.fontFamily": "HackGen35 Console NF",
     "editor.fontFamily": "FiraCode Nerd Font",
-    "workbench.colorTheme": "GitHub Dark Dimmed",
+    "workbench.colorTheme": "Night Owl",
     "vim.statusBarColorControl": true,
     "vim.insertModeKeyBindings": [
         {
@@ -128,6 +128,10 @@
     "python.defaultInterpreterPath": "/opt/homebrew/bin/python3",
     "remote.autoForwardPortsSource": "hybrid",
     "database-client.autoSync": true,
-
-    "dev.containers.stopOnClose": true
+    "dev.containers.stopOnClose": true,
+    // Indent settings 
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false,
+    "terminal.integrated.defaultProfile.linux": "zsh"
 }

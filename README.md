@@ -1,105 +1,81 @@
-# dotfiles
+# Dotfiles
 
-このリポジトリでは、zsh と tmux の設定を dotfiles で管理し、任意のマシンで一発で環境構築できるようにしています。
-
----
-
-## 📁 ディレクトリ構成
-
-    ~/.dotfiles/
-    ├── zsh/
-    │   └── .zshrc         # zsh 設定ファイル
-    ├── tmux/
-    │   └── .tmux.conf     # tmux 設定ファイル
-    ├── install_for_linux.sh  # Linux 環境用インストーラ
-    └── install-macos.sh   # macOS (Homebrew) 環境用インストーラ
+Mac と Linux コンテナで同じ操作感を得るための最小構成の dotfiles です。  
+使用しているツールは **zsh / oh-my-zsh / tmux / fzf** です。  
+zsh には autosuggestions / syntax-highlighting プラグインを導入しています。
 
 ---
 
-## ⚙️ 必要要件
+## 構成
 
-- Git  
-- zsh  
-- tmux  
-- fzf  
-- curl  
-
-Linux では `apt` または `dnf`、macOS では Homebrew を利用してください。
-
----
-
-## 🚀 インストール方法
-
-### Linux 環境
-
-    # リポジトリをクローン
-    git clone https://github.com/<ユーザー名>/dotfiles.git ~/dotfiles
-    cd ~/dotfiles
-
-    # スクリプト実行
-    chmod +x install.sh
-    ./install.sh
-
-### macOS (Homebrew) 環境
-
-    # リポジトリをクローン
-    git clone https://github.com/<ユーザー名>/dotfiles.git ~/dotfiles
-    cd ~/dotfiles
-
-    # スクリプト実行
-    chmod +x install-macos.sh
-    ./install-macos.sh
-
----
-
-## 🔗 dotfiles の中身
-
-- **zsh/.zshrc**: Oh My Zsh の設定とプラグイン（autosuggestions, syntax-highlighting, fzf）  
-- **tmux/.tmux.conf**: tmux のキーバインド変更（Ctrl+a）、ステータスバー設定、マウス有効化  
-
----
-
-## 🛠️ 使い方
-
-1. ターミナルを再起動すると、自動的に zsh が起動します。  
-2. `Ctrl+a` で tmux のプレフィックスキーが有効化されます。  
-3. fzf を使ったファイル・コマンド補完が動作します。  
-
----
-
-## ✏️ カスタマイズ
-
-- **zsh テーマ**: `zsh/.zshrc` 内の `ZSH_THEME` を変更  
-- **プラグイン追加**: `~/.oh-my-zsh/custom/plugins` にクローンし、`.zshrc` の `plugins=(...)` に追加  
-- **tmux 設定**: `tmux/.tmux.conf` を編集  
-
----
-
-## 🔄 更新方法
-
-1. `cd ~/dotfiles` でリポジトリに移動  
-2. `git pull` で最新化  
-3. 必要に応じて `install.sh` や `install-macos.sh` を再実行  
-
----
-
-## 📄 ライセンス
-
-MIT License
-
-
-### Homebrew インストール後の設定設定
-
-```plain
-==> Next steps:
-- Run these commands in your terminal to add Homebrew to your PATH:
-    echo >> /home/dev/.bashrc
-    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/dev/.bashrc
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-- Install Homebrew's dependencies if you have sudo access:
-    sudo apt-get install build-essential
-  For more information, see:
-    https://docs.brew.sh/Homebrew-on-Linux
-- We recommend that you install GCC:
-    brew install gcc
 ```
+~/.dotfiles/
+├── bootstrap.sh       # 初期セットアップスクリプト
+├── zsh
+│   ├── .zshrc         # zsh のメイン設定
+│   ├── aliases.zsh    # エイリアス
+│   └── options.zsh    # zsh のオプション
+├── tmux
+│   └── .tmux.conf     # tmux 設定
+└── fzf
+    └── fzf.zsh        # fzf の追加設定（任意）
+```
+
+---
+
+## セットアップ
+
+### 1. リポジトリを配置
+```
+git clone https://github.com/yourname/dotfiles.git ~/.dotfiles
+```
+
+### 2. 初期化
+```
+sh ~/.dotfiles/bootstrap.sh
+```
+
+- Mac では Homebrew を使って zsh / tmux / fzf をインストールします。
+- Linux では apt / apk が利用できればインストールします。権限が無ければスキップします。
+- oh-my-zsh が導入され、autosuggestions / syntax-highlighting プラグインが追加されます。
+- 各設定ファイルがホームディレクトリにシンボリックリンクされます。
+
+### 3. シェルを再起動
+```
+exec zsh
+```
+
+---
+
+## 利用ツール
+
+- **zsh**: メインシェル。oh-my-zsh を利用。
+  - プラグイン:
+    - zsh-autosuggestions
+    - zsh-syntax-highlighting
+    - fzf (ある場合)
+- **tmux**: ターミナルマルチプレクサ。
+- **fzf**: 補完・ファイル検索。ripgrep / fd があれば自動で利用。
+
+---
+
+## カスタマイズ
+
+- エイリアスは `zsh/aliases.zsh` にまとめています。
+- zsh オプションは `zsh/options.zsh` で調整できます。
+- tmux のプレフィックスキーやステータスラインは `tmux/.tmux.conf` を変更してください。
+- fzf のデフォルト動作を上書きしたい場合は `fzf/fzf.zsh` に追記してください。
+
+---
+
+## 再実行について
+
+`bootstrap.sh` は **再実行しても安全**です。  
+パッケージ導入・oh-my-zsh・プラグイン導入・リンク作成は冪等に処理されます。
+
+---
+
+## 注意
+
+- 本番用の軽量コンテナには導入せず、**開発用コンテナとローカル開発環境の統一**に使うことを想定しています。
+- パッケージの追加が必要な場合は **Dockerfile に入れるのが推奨**です。

@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  # 開発用サービス（VS Code devcontainer がこれを使います）
+  app-dev:
+    image: yourimage:dev
+    build:
+      context: .
+      target: dev
+      args:
+        USER: app
+        UID: ${UID-1000}
+        GID: ${GID-1000}
+    user: "${UID-1000}:${GID-1000}"
+    working_dir: /workspace
+    volumes:
+      # プロジェクトをマウント
+      - ./:/workspace:cached
+      # dotfiles をマウント（読み取り専用推奨）
+      - ${HOME}/.dotfiles:/home/app/.dotfiles:ro
+    environment:
+      - TZ=Asia/Tokyo
+    tty: true
+    stdin_open: true
+
+  # 本番用サービス（デプロイ/検証用）
+  app-prod:
+    image: yourimage:prod
+    build:
+      context: .
+      target: prod
+      args:
+        USER: app
+        UID: 1000
+        GID: 1000
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Tokyo
+    # 必要に応じて公開ポートを追加
+    # ports:
+    #   - "8080:8080"
+    tty: true
