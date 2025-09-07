@@ -1,108 +1,133 @@
 #!/usr/bin/env sh
 # ~/.dotfiles/bootstrap.sh
-# 最小権限で安全・再実行可能な初期化。sudo不可環境ではOSパッケージ導入をスキップし、
-# dotfiles配置と oh-my-zsh / プラグイン導入のみ行う。
+# 最小セットアップ: sudo不要・再実行安全・リンク作成・oh-my-zsh導入・VS Code CLIリンク
 
 set -eu
 
-log() { printf '%s\n' "$*"; }
-warn() { printf 'WARN: %s\n' "$*"; }
+log()  { printf '[dotfiles] %s\n' "$*"; }
+warn() { printf 'WARN: %s\n' "$*\n" >&2; }
 
 DOTFILES="${DOTFILES:-$HOME/.dotfiles}"
-ZSH_DIR="$HOME/.oh-my-zsh"
-ZSH_CUSTOM="$ZSH_DIR/custom"
 
-OS="$(uname -s 2>/dev/null || echo Unknown)"
-DISTRO="linux"
-[ "$OS" = "Darwin" ] && DISTRO="macos"
-
-SUDO=""
-if command -v sudo >/dev/null 2>&1 && [ "$(id -u)" != "0" ]; then
-  SUDO="sudo"
+# -------- OS/環境判定 --------
+IS_MACOS=false; IS_LINUX=false; IS_WSL=false; IS_CONTAINER=false
+case "$(uname -s)" in
+  Darwin) IS_MACOS=true ;;
+  Linux)  IS_LINUX=true ;;
+esac
+# WSL
+if $IS_LINUX && grep -qiE '(microsoft|wsl)' /proc/version 2>/dev/null; then
+  IS_WSL=true
+fi
+# コンテナ（簡易）
+if grep -qE '(docker|containerd)' /proc/1/cgroup 2>/dev/null; then
+  IS_CONTAINER=true
 fi
 
-install_pkgs() {
-  case "$DISTRO" in
-    macos)
-      if ! command -v brew >/dev/null 2>&1; then
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-      fi
-      brew update
-      # 実用度向上のために rg/fd/curl も入れる
-      brew install zsh tmux fzf git ripgrep fd curl
-      # fzf のキーバインド（再実行安全）
-      "$(brew --prefix)/opt/fzf/install" --no-bash --no-fish --key-bindings --completion --no-update-rc 2>/dev/null || true
-      ;;
-    linux)
-      if command -v apt-get >/dev/null 2>&1; then
-        if [ -n "$SUDO" ] || [ "$(id -u)" = "0" ]; then
-          export DEBIAN_FRONTEND=noninteractive
-          $SUDO apt-get update -y
-          $SUDO apt-get install -y --no-install-recommends \
-            zsh tmux fzf git ca-certificates curl ripgrep fd-find
-          # Debian/Ubuntu は fd-find のコマンド名が fdfind なのでエイリアスを用意（存在時のみ）
-          if command -v fdfind >/dev/null 2>&1 && [ ! -e "$HOME/.local/bin/fd" ]; then
-            mkdir -p "$HOME/.local/bin"
-            ln -snf "$(command -v fdfind)" "$HOME/.local/bin/fd"
-          fi
-        else
-          warn "apt-get を実行できないため OS パッケージ導入をスキップします"
-        fi
-      elif command -v apk >/dev/null 2>&1; then
-        if [ -n "$SUDO" ] || [ "$(id -u)" = "0" ]; then
-          $SUDO apk add --no-cache zsh tmux fzf git ca-certificates curl ripgrep fd
-        else
-          warn "apk を実行できないため OS パッケージ導入をスキップします"
-        fi
-      else
-        warn "対応していないパッケージマネージャです（導入スキップ）"
-      fi
-      ;;
-    *)
-      warn "未知の OS。パッケージ導入はスキップします"
-      ;;
-  esac
+# -------- ユーティリティ --------
+link() {
+  src="$1"; dst="$2"
+  mkdir -p "$(dirname "$dst")"
+  if [ -e "$dst" ] && [ ! -L "$dst" ]; then
+    mv -f "$dst" "$dst.bak.$(date +%s)"
+    log "backup: $dst -> ${dst}.bak.*"
+  fi
+  ln -snf "$src" "$dst"
+  log "linked: $dst -> $src"
 }
 
-install_omz() {
-  if [ ! -d "$ZSH_DIR" ]; then
-    log "Installing oh-my-zsh..."
+install_ohmyzsh() {
+  if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    log "installing oh-my-zsh (non-interactive)"
     RUNZSH=no CHSH=no KEEP_ZSHRC=yes \
       sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
   fi
 }
 
-install_plugins() {
+install_min_plugins() {
+  ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
   mkdir -p "$ZSH_CUSTOM/plugins"
-  if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
+  [ -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] || \
     git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
-  fi
-  if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
-    git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+  [ -d "$ZSH_CUSTOM/plugins/fast-syntax-highlighting" ] || \
+    git clone --depth=1 https://github.com/zdharma-continuum/fast-syntax-highlighting "$ZSH_CUSTOM/plugins/fast-syntax-highlighting"
+  [ -d "$ZSH_CUSTOM/plugins/zsh-completions" ] || \
+    git clone --depth=1 https://github.com/zsh-users/zsh-completions "$ZSH_CUSTOM/plugins/zsh-completions"
+}
+
+# ~/.zsh/local.zsh を先読み（WIN_USER を参照したい）
+load_local_vars() {
+  # まだ ~/.zsh へリンクしていない段階でも読みたいので両方見る
+  if [ -f "$HOME/.zsh/local.zsh" ]; then
+    # 変数を環境へエクスポート
+    # local.zsh は "export VAR=..." の形式にしてください
+    # shellcheck disable=SC1090
+    . "$HOME/.zsh/local.zsh"
+  elif [ -f "$DOTFILES/zsh/local.zsh" ]; then
+    # 万一直置きしている場合
+    # shellcheck disable=SC1090
+    . "$DOTFILES/zsh/local.zsh"
   fi
 }
 
-link() {
-  # usage: link SRC DST   （SRC が存在する時だけ貼る）
-  if [ -e "$1" ]; then
-    mkdir -p "$(dirname "$2")"
-    ln -snf "$1" "$2"
-  else
-    warn "リンク元が見つかりません: $1 （スキップ）"
+link_code_cli() {
+  # 既に PATH 上にあるなら触らない
+  if command -v code >/dev/null 2>&1; then
+    log "code already in PATH: $(command -v code)"
+    return 0
+  fi
+
+  # コンテナはスキップ（Windowsの VS Code から接続する想定）
+  if $IS_CONTAINER; then
+    log "container detected: skip linking VS Code CLI"
+    return 0
+  fi
+
+  src=""
+  if $IS_MACOS; then
+    mac_path="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+    [ -x "$mac_path" ] && src="$mac_path"
+  elif $IS_WSL; then
+    if [ -z "${WIN_USER:-}" ]; then
+      warn "WIN_USER not set (define it in ~/.zsh/local.zsh like: export WIN_USER=\"YourWindowsUser\")"
+    else
+      guess="/mnt/c/Users/$WIN_USER/AppData/Local/Programs/Microsoft VS Code/bin/code"
+      if [ -x "$guess" ]; then
+        src="$guess"
+      else
+        warn "VS Code CLI not found at $guess — please adjust manually."
+      fi
+    fi
+  fi
+
+  if [ -n "${src:-}" ]; then
+    mkdir -p "$HOME/.local/bin"
+    link "$src" "$HOME/.local/bin/code"
   fi
 }
 
-link_dotfiles() {
-  link "$DOTFILES/zsh/.zshrc"        "$HOME/.zshrc"
-  link "$DOTFILES/zsh/aliases.zsh"   "$HOME/.zsh_aliases"
-  link "$DOTFILES/zsh/options.zsh"   "$HOME/.zsh_options"
-  link "$DOTFILES/tmux/.tmux.conf"   "$HOME/.tmux.conf"
-  # $DOTFILES/fzf/fzf.zsh は不要（.zshrc が自動検出読み込み）
+main() {
+  install_ohmyzsh
+  install_min_plugins
+  load_local_vars
+
+  mkdir -p "$HOME/.local/bin"
+
+  # zsh
+  link "$DOTFILES/zsh/.zshrc" "$HOME/.zshrc"
+  link "$DOTFILES/zsh" "$HOME/.zsh"
+
+  # git
+  link "$DOTFILES/git/gitconfig"        "$HOME/.gitconfig"
+  link "$DOTFILES/git/gitignore_global" "$HOME/.gitignore_global"
+
+  # tmux
+  link "$DOTFILES/tmux/.tmux.conf" "$HOME/.tmux.conf"
+
+  # VS Code CLI
+  link_code_cli
+
+  log "done. restart shell or run: exec zsh"
 }
 
-install_pkgs
-install_omz
-install_plugins
-link_dotfiles
-
-log "Done. 反映するには新しいシェルを開始してください（例: exec zsh）"
+main "$@"

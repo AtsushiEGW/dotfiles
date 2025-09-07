@@ -5,7 +5,6 @@
     // "editor.fontFamily": "Firge35Nerd Console",
     // "editor.fontFamily": "HackGen35 Console NF",
     "editor.fontFamily": "FiraCode Nerd Font",
-    "workbench.colorTheme": "Night Owl",
     "vim.statusBarColorControl": true,
     "vim.insertModeKeyBindings": [
         {
@@ -15,74 +14,6 @@
             ],
             "after": [
                 "<Esc>"
-            ]
-        }
-    ],
-    // Vim easymotion is required for Jump menu - <SPC> j
-    "vim.easymotion": true,
-    // Use system clipboard for vim
-    "vim.useSystemClipboard": true,
-    // Trigger the main which key menu with in the active editor with vim
-    // This cannot be put into keybindings.json because it will
-    // create conflict with Vim.
-    // https://github.com/stevenguh/spacecode/issues/3
-    "vim.normalModeKeyBindingsNonRecursive": [
-        {
-            "before": [
-                "<space>"
-            ],
-            "commands": [
-                "vspacecode.space"
-            ]
-        },
-        {
-            "before": [
-                ","
-            ],
-            "commands": [
-                "vspacecode.space",
-                {
-                    "command": "whichkey.triggerKey",
-                    "args": "m"
-                }
-            ]
-        }
-    ],
-    "vim.visualModeKeyBindingsNonRecursive": [
-        {
-            "before": [
-                "<space>"
-            ],
-            "commands": [
-                "vspacecode.space"
-            ]
-        },
-        {
-            "before": [
-                ","
-            ],
-            "commands": [
-                "vspacecode.space",
-                {
-                    "command": "whichkey.triggerKey",
-                    "args": "m"
-                }
-            ]
-        },
-        {
-            "before": [
-                ">"
-            ],
-            "commands": [
-                "editor.action.indentLines"
-            ]
-        },
-        {
-            "before": [
-                "<"
-            ],
-            "commands": [
-                "editor.action.outdentLines"
             ]
         }
     ],
@@ -133,5 +64,6 @@
     "editor.insertSpaces": true,
     "editor.tabSize": 4,
     "editor.detectIndentation": false,
-    "terminal.integrated.defaultProfile.linux": "zsh"
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "workbench.colorTheme": "Catppuccin Mocha"
 }

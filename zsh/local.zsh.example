@@ -1,0 +1,10 @@
+# ~/.zsh/local.zsh （git管理外） — 端末依存・秘密情報を記載
+# 例: WSL で Windows 側ユーザー名を指定（VS Code CLI のリンクで使用）
+export WIN_USER="Taro"   # ← C:\Users\Taro の "Taro" に置き換え
+
+# 追加の PATH（個別マシン）
+# export PATH="$HOME/.cargo/bin:$PATH"
+
+# プロキシやトークン（必要なら）
+# export HTTP_PROXY="http://..."
+# export OPENAI_API_KEY="..."

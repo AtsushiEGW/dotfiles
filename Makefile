@@ -1,7 +1,7 @@
 
 describe:
 	echo "===Project Directory Structure:\n" > file_describe.txt
-	tree -I "file_describe.txt|Makefile" >> file_describe.txt
+	tree -a -I "file_describe.txt|Makefile|.git|.gitignore" >> file_describe.txt
 
 	echo "\n\n\n=== bootstrap.sh:\n" >> file_describe.txt
 	cat bootstrap.sh >> file_describe.txt

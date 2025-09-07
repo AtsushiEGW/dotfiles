@@ -1,17 +1,19 @@
-# ~/.zsh_options
-
-# 補完とメニュー
-setopt AUTO_MENU AUTO_LIST MENU_COMPLETE
-zmodload zsh/complist 2>/dev/null || true
-zstyle ':completion:*' squeeze-slashes true
-zstyle ':completion:*' special-dirs true
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
-zstyle ':completion:*' menu select   # ← 矢印で候補を選べる
-
-# コメント/履歴
-setopt INTERACTIVE_COMMENTS
-setopt BANG_HIST EXTENDED_HISTORY INC_APPEND_HISTORY SHARE_HISTORY
-setopt HIST_EXPIRE_DUPS_FIRST HIST_IGNORE_DUPS HIST_IGNORE_ALL_DUPS HIST_REDUCE_BLANKS HIST_VERIFY
+# 履歴設定（十分に大きく）
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=200000
 SAVEHIST=200000
+setopt share_history hist_ignore_dups hist_reduce_blanks
+
+# よく使う最小オプション
+setopt autocd            # "cd" 省略
+setopt interactive_comments
+setopt glob_dots         # .ファイルも補完対象
+
+# 補完（oh-my-zshがcompinitを呼ぶが、破損時の再構築にも耐える）
+autoload -Uz compinit
+if [ ! -f ~/.zcompdump ] || ! zcompdump -t ~/.zcompdump >/dev/null 2>&1; then
+  compinit -C
+else
+  compinit -u
+fi
+zstyle ':completion:*' menu select

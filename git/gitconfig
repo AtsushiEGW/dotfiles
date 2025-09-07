@@ -1,0 +1,15 @@
+[user]
+    name = YOUR_NAME
+    email = your.name@example.com
+
+[core]
+    editor = nvim
+    excludesfile = ~/.gitignore_global
+    autocrlf = input
+    filemode = false
+
+[init]
+    defaultBranch = main
+
+[fetch]
+    prune = true
