@@ -1,6 +1,6 @@
 # ~/.zsh_aliases
 
-# OS 判定ヘルパ
+# 可能なら macOS 判定
 is_macos() { [[ "$OSTYPE" == darwin* ]]; }
 
 # ls
@@ -16,7 +16,7 @@ alias la='ls -A'
 # grep/cat
 alias grep='grep --color=auto'
 
-# 安全系
+# 安全系（対話シェル向け）
 alias cp='cp -i'
 alias mv='mv -i'
 alias rm='rm -i'
