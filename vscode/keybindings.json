@@ -7,6 +7,15 @@
     {
         "key": "ctrl+r ctrl+r",
         "command": "python.execInDedicatedTerminal"
-	}
-	
+	},
+    {
+        // Ctrl+Shift+A でコマンドパレットを開く
+        "key": "ctrl+shift+a",
+        "command": "workbench.action.showCommands"
+    },
+    {
+        // Ctrl+T でファイル検索 (Quick Open) を開く
+        "key": "ctrl+t",
+        "command": "workbench.action.quickOpen"
+    }
 ]

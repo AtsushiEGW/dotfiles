@@ -6,6 +6,7 @@
     // "editor.fontFamily": "HackGen35 Console NF",
     "editor.fontFamily": "FiraCode Nerd Font",
     "vim.statusBarColorControl": true,
+    "vim.useSystemClipboard": true,
     "vim.insertModeKeyBindings": [
         {
             "before": [
@@ -38,8 +39,6 @@
     },
     "terminal.integrated.fontSize": 14,
     "terminal.integrated.fontFamily": "FiraCode Nerd Font",
-    // "terminal.integrated.fontFamily": "UDEV Gothic 35NFLG",
-    // "terminal.integrated.fontFamily": "HackGen35 Console NF",
     "editor.fontSize": 14,
     "python.analysis.typeCheckingMode": "basic",
     "makefile.configureOnOpen": true,
@@ -65,5 +64,6 @@
     "editor.tabSize": 4,
     "editor.detectIndentation": false,
     "terminal.integrated.defaultProfile.linux": "zsh",
-    "workbench.colorTheme": "Catppuccin Mocha"
+    "workbench.colorTheme": "Catppuccin Mocha",
+    "window.customTitleBarVisibility": "windowed"
 }
