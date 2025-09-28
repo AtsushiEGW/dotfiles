@@ -14,4 +14,4 @@
 [fetch]
     prune = true
 [credential]
-	helper = "!f() { /home/dev/.vscode-server/bin/6f17636121051a53c88d3e605c491d22af2ba755/node /tmp/vscode-remote-containers-d5f25986-59b9-47df-871d-851e46d9881c.js git-credential-helper $*; }; f"
+	helper = "!f() { /home/dev/.vscode-server/bin/0f0d87fa9e96c856c5212fc86db137ac0d783365/node /tmp/vscode-remote-containers-8113c888-0c57-41f4-aa4e-01b9dee981db.js git-credential-helper $*; }; f"

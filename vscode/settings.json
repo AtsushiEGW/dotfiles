@@ -37,9 +37,18 @@
         "statusBar.foreground": "#ffffff",
         "statusBar.debuggingForeground": "#ffffff"
     },
-    "terminal.integrated.fontSize": 14,
+    "terminal.integrated.fontSize": 12.5,
     "terminal.integrated.fontFamily": "FiraCode Nerd Font",
-    "editor.fontSize": 14,
+    "editor.fontSize": 13,
+    // ruff
+    "python.linting.enabled": true,
+    "python.linting.ruffEnabled": true,
+    "ruff.configurationPreference": "editorFirst",
+    "ruff.lineLength": 88,
+    "ruff.fixAll": true,
+    "ruff.organizeImports": true,
+    "ruff.showSyntaxErrors": true,
+    "ruff.logLevel": "info",
     "python.analysis.typeCheckingMode": "basic",
     "makefile.configureOnOpen": true,
     "workbench.iconTheme": "ayu",
@@ -64,6 +73,21 @@
     "editor.tabSize": 4,
     "editor.detectIndentation": false,
     "terminal.integrated.defaultProfile.linux": "zsh",
-    "workbench.colorTheme": "Catppuccin Mocha",
-    "window.customTitleBarVisibility": "windowed"
+    "workbench.colorTheme": "Panda Syntax",
+    "window.customTitleBarVisibility": "windowed",
+    "hediet.vscode-drawio.resizeImages": null,
+    "[dockercompose]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.autoIndent": "advanced",
+        "editor.quickSuggestions": {
+            "other": true,
+            "comments": false,
+            "strings": true
+        },
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "[github-actions-workflow]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    }
 }
