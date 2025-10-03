@@ -4,7 +4,8 @@ export ZDOTDIR="$HOME/.zsh"
 
 # oh-my-zsh（付属テーマをそのまま使う）
 export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="gnzh"
+# ZSH_THEME="gnzh"
+ZSH_THEME="eastwood"
 plugins=(git zsh-completions zsh-autosuggestions fast-syntax-highlighting)
 
 source "$ZSH/oh-my-zsh.sh"
